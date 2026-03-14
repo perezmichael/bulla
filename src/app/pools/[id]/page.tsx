@@ -11,7 +11,7 @@ import {
   AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer,
 } from "recharts"
-import { ArrowLeft, ExternalLink, Copy, ChevronLeft, ChevronRight, Search, Clock, ChevronDown, Download } from "lucide-react"
+import { ArrowLeft, ExternalLink, Copy, ChevronLeft, ChevronRight, Search, Clock, ChevronDown, Download, ShieldCheck, FileText, Users, Clock3 } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 
@@ -222,14 +222,66 @@ export default function PoolDetailPage({ params }: { params: { id: string } }) {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
           <TARAMLogo size={44} />
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2 flex-wrap">
-            TARAM Funding Pool - Redbelly
-            <ExternalLink className="w-4 h-4 text-gray-400 shrink-0" />
-          </h1>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2 flex-wrap">
+              TARAM Funding Pool - Redbelly
+              <ExternalLink className="w-4 h-4 text-gray-400 shrink-0" />
+            </h1>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Managed by <span className="font-medium text-gray-700">TARAM Trade Engine</span>
+              {" · "}Pool Owner: <span className="font-medium text-gray-700">Bulla Network</span>
+            </p>
+          </div>
         </div>
-        <Button variant="outline" className="h-10 px-5 border-brand-dark text-brand-dark font-semibold text-sm hover:bg-gray-50 shrink-0">
-          Switch Network
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <a href="#" className="inline-flex items-center gap-1.5 h-9 px-4 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+            <FileText className="w-4 h-4" />
+            LPA
+          </a>
+          <Button variant="outline" className="h-9 px-5 border-brand-dark text-brand-dark font-semibold text-sm hover:bg-gray-50 shrink-0">
+            Switch Network
+          </Button>
+        </div>
+      </div>
+
+      {/* Pool structure + health strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="border border-gray-200 rounded-lg bg-white px-4 py-3 flex items-start gap-3">
+          <Users className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
+          <div className="min-w-0">
+            <p className="text-xs text-gray-500 font-medium mb-0.5">Pool Manager</p>
+            <p className="text-sm font-semibold text-gray-900 truncate">TARAM Trade Engine</p>
+            <p className="text-xs text-gray-400 leading-tight mt-0.5">AI cross-border trade finance</p>
+          </div>
+        </div>
+        <div className="border border-gray-200 rounded-lg bg-white px-4 py-3 flex items-start gap-3">
+          <ShieldCheck className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
+          <div className="min-w-0">
+            <p className="text-xs text-gray-500 font-medium mb-0.5">Credit Quality</p>
+            <p className="text-sm font-semibold text-gray-900">Insured</p>
+            <p className="text-xs text-gray-400 leading-tight mt-0.5">Insurance-underwritten per invoice</p>
+          </div>
+        </div>
+        <div className="border border-gray-200 rounded-lg bg-white px-4 py-3 flex items-start gap-3">
+          <div className="w-4 h-4 mt-0.5 shrink-0 flex items-center justify-center">
+            <div className="w-3 h-3 rounded-full bg-amber-400" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-gray-500 font-medium mb-0.5">Capital Utilization</p>
+            <p className="text-sm font-semibold text-gray-900">93.9% deployed</p>
+            <div className="h-1 bg-gray-100 rounded-full mt-1.5 overflow-hidden">
+              <div className="h-full bg-amber-400 rounded-full" style={{ width: "93.9%" }} />
+            </div>
+          </div>
+        </div>
+        <div className="border border-gray-200 rounded-lg bg-white px-4 py-3 flex items-start gap-3">
+          <Clock3 className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
+          <div className="min-w-0">
+            <p className="text-xs text-gray-500 font-medium mb-0.5">Redemption Terms</p>
+            <p className="text-sm font-semibold text-gray-900">FIFO · 10 biz days</p>
+            <p className="text-xs text-gray-400 leading-tight mt-0.5">Min deposit: 10,000 USDC</p>
+          </div>
+        </div>
       </div>
 
       {/* Main chart card */}
@@ -639,11 +691,44 @@ export default function PoolDetailPage({ params }: { params: { id: string } }) {
         </TabsContent>
 
         {/* ── Redemption Queue ── */}
-        <TabsContent value="queue" className="mt-5">
-          <div className="border border-gray-200 rounded-lg bg-white p-12 text-center text-gray-400 shadow-sm">
+        <TabsContent value="queue" className="mt-5 space-y-4">
+          {/* How it works */}
+          <div className="border border-gray-200 rounded-lg bg-white p-5 shadow-sm">
+            <h3 className="text-sm font-bold text-gray-900 mb-3">How Redemptions Work</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-brand-dark text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">1</div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Submit Request</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Enter your desired redemption amount and confirm via your wallet. Your request is recorded on-chain with a timestamp.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-brand-dark text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">2</div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">FIFO Queue</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Requests are processed in order (first-in, first-out) as liquidity becomes available from repaid receivables.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-brand-dark text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">3</div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Receive USDC</p>
+                  <p className="text-xs text-gray-500 mt-0.5">BFT tokens are burned and USDC is sent to your wallet at the current BFT Redemption Price. Standard window: 10 business days.</p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 pt-4 border-t border-gray-100 flex items-start gap-2 text-xs text-gray-500">
+              <Clock3 className="w-3.5 h-3.5 mt-0.5 shrink-0 text-gray-400" />
+              <span>If your redemption is delayed beyond 10 business days, you will receive status notices every 5 business days. Maximum delay: 30 calendar days (except in force majeure or regulatory events).</span>
+            </div>
+          </div>
+
+          {/* Empty state */}
+          <div className="border border-gray-200 rounded-lg bg-white p-10 text-center text-gray-400 shadow-sm">
             <Download className="w-8 h-8 mx-auto mb-3 text-gray-300" />
             <p className="text-sm font-medium text-gray-500">No pending redemptions</p>
-            <p className="text-xs mt-1">Redemption requests will appear here when submitted.</p>
+            <p className="text-xs mt-1">Switch to Redbelly network to submit a redemption request.</p>
           </div>
         </TabsContent>
       </Tabs>
@@ -662,13 +747,13 @@ function PoolStatsGrid() {
           { label: "Fund Balance",    value: "583.838 USDC" },
           { label: "Capital Account", value: "106,882.073 USDC" },
           { label: "Total Supply",    value: "101,979.732 BFT-TARAM" },
-          { label: "Currency",        value: "USDC", icon: <span className="inline-block w-3 h-3 rounded-full bg-blue-500 mr-1" /> },
-          { label: "Network",         value: "Redbelly Network", icon: <span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-1" /> },
-          { label: "Token",           value: "BFT-TARAM" },
+          { label: "Utilization",     value: "93.9% deployed", highlight: true },
+          { label: "Min. Deposit",    value: "10,000 USDC" },
+          { label: "Network / Token", value: "Redbelly · BFT-TARAM", icon: <span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-1" /> },
         ].map((s) => (
           <div key={s.label}>
             <p className="text-xs text-gray-500 mb-1">{s.label}</p>
-            <p className="text-sm font-semibold text-gray-900 flex items-center">
+            <p className={`text-sm font-semibold flex items-center ${s.highlight ? "text-amber-600" : "text-gray-900"}`}>
               {s.icon}{s.value}
             </p>
           </div>
