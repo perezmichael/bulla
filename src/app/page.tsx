@@ -1,12 +1,11 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import {
   TrendingUp, TrendingDown, ArrowUpRight, ArrowDownLeft,
-  ChevronRight, ExternalLink, Zap, FileText, Coins,
-  ArrowRightLeft, Clock, AlertCircle,
+  ChevronRight, ExternalLink, Coins,
+  Clock, AlertCircle,
 } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
@@ -51,19 +50,6 @@ function RedbellyIcon({ size = 18 }: { size?: number }) {
 }
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
-
-type ChainBalance = {
-  chain: "eth" | "base" | "gnosis"
-  label: string
-  amount: string
-  icon: React.ReactNode
-}
-
-const chainBalances: ChainBalance[] = [
-  { chain: "eth",    label: "Ethereum", amount: "$6,200.14", icon: <EthIcon size={14} /> },
-  { chain: "base",   label: "Base",     amount: "$4,813.88", icon: <BaseIcon size={14} /> },
-  { chain: "gnosis", label: "Gnosis",   amount: "$1,436.30", icon: <GnosisIcon size={14} /> },
-]
 
 type Position = {
   id: string
@@ -195,17 +181,6 @@ const featuredPools: FeaturedPool[] = [
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function ActionBtn({ label, icon }: { label: string; icon: React.ReactNode }) {
-  return (
-    <div className="flex flex-col items-center gap-1.5 group cursor-pointer">
-      <div className="w-11 h-11 rounded-full bg-white/15 border border-white/20 flex items-center justify-center group-hover:bg-white/25 transition-colors">
-        {icon}
-      </div>
-      <span className="text-[10px] font-semibold text-white/80 uppercase tracking-wide">{label}</span>
-    </div>
-  )
-}
-
 function NetworkBadge({ network }: { network: "Ethereum" | "Redbelly" }) {
   return (
     <div className="flex items-center gap-1">
@@ -230,52 +205,6 @@ function ChainDot({ chain }: { chain: "eth" | "base" | "gnosis" }) {
   if (chain === "eth")    return <EthIcon size={13} />
   if (chain === "base")   return <BaseIcon size={13} />
   return <GnosisIcon size={13} />
-}
-
-// ─── Wallet Snapshot Bar ──────────────────────────────────────────────────────
-
-function WalletSnapshot() {
-  return (
-    <div className="rounded-xl bg-brand-dark text-white p-5 sm:p-6 shadow-md">
-      <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-
-        {/* Portfolio total */}
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-white/60 uppercase tracking-wider mb-1">Portfolio Value</p>
-          <div className="flex items-end gap-3 flex-wrap">
-            <span className="text-3xl sm:text-4xl font-bold tracking-tight">$12,450.32</span>
-            <div className="flex items-center gap-1 mb-1 bg-green-500/15 border border-green-500/25 px-2 py-0.5 rounded-full">
-              <TrendingUp className="w-3.5 h-3.5 text-green-400" />
-              <span className="text-sm font-semibold text-green-400">+$234.15 (1.92%)</span>
-            </div>
-          </div>
-          <p className="text-xs text-white/50 mt-1">Today vs. yesterday · Updated just now</p>
-
-          {/* Chain breakdown pills */}
-          <div className="flex flex-wrap gap-2 mt-4">
-            {chainBalances.map((c) => (
-              <div
-                key={c.chain}
-                className="flex items-center gap-1.5 bg-white/10 border border-white/10 px-2.5 py-1 rounded-full text-xs font-medium text-white/80"
-              >
-                {c.icon}
-                <span className="text-white/60">{c.label}</span>
-                <span>{c.amount}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Quick actions */}
-        <div className="flex items-center gap-4 sm:gap-5 pt-1">
-          <ActionBtn label="Send"    icon={<Zap           className="w-4.5 h-4.5 text-white" />} />
-          <ActionBtn label="Request" icon={<FileText       className="w-4.5 h-4.5 text-white" />} />
-          <ActionBtn label="Pay"     icon={<Coins          className="w-4.5 h-4.5 text-white" />} />
-          <ActionBtn label="Swap"    icon={<ArrowRightLeft className="w-4.5 h-4.5 text-white" />} />
-        </div>
-      </div>
-    </div>
-  )
 }
 
 // ─── Your Positions ───────────────────────────────────────────────────────────
@@ -497,9 +426,6 @@ function FeaturedPoolCard({ pool }: { pool: FeaturedPool }) {
 export default function DashboardPage() {
   return (
     <div className="space-y-6 pb-20">
-
-      {/* ── Wallet Snapshot ───────────────────────────────────────────────── */}
-      <WalletSnapshot />
 
       {/* ── Your Positions ────────────────────────────────────────────────── */}
       <section>
