@@ -119,27 +119,34 @@ const positions: Position[] = [
     canDeposit: false,
     logo: <TARAMLogo />,
   },
+]
+
+// ─── Available pools (not yet invested) ──────────────────────────────────────
+
+type AvailablePool = {
+  id: string
+  shortName: string
+  network: "Ethereum" | "Redbelly"
+  targetYield: string
+  minDeposit: string
+  poolManager: string
+  creditRating: string
+  description: string
+  stablecoin: string
+  logo: React.ReactNode
+}
+
+const availablePools: AvailablePool[] = [
   {
     id: "1",
-    poolName: "TCS Settlement Pool - Mainnet V2.1",
     shortName: "TCS Settlement Pool",
     network: "Ethereum",
-    tokenSymbol: "BFT-TCS-V2_1",
-    tokensHeld: "0.000",
-    currentValue: "$0.00",
-    depositedValue: null,
-    yieldEarned: null,
-    yieldEarnedPct: null,
     targetYield: "7.95%",
-    pricePerToken: "$1.000",
-    daysActive: null,
-    utilizationPct: 0,
-    nextMaturityDate: null,
-    poolManager: "TCS Blockchain Inc.",
     minDeposit: "10,000 PYUSD",
+    poolManager: "TCS Blockchain Inc.",
     creditRating: "AAA / AA–",
-    hasPosition: false,
-    canDeposit: true,
+    description: "Funds short-cycle freight invoices from AAA/AA– rated shippers. Net 30–45 day terms.",
+    stablecoin: "PYUSD",
     logo: <TCSLogo />,
   },
 ]
@@ -381,6 +388,63 @@ function LaunchCard({ pos }: { pos: Position }) {
   )
 }
 
+// ─── Available pool row ───────────────────────────────────────────────────────
+
+function AvailablePoolRow({ pool }: { pool: AvailablePool }) {
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+      {/* Logo + name */}
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        {pool.logo}
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="text-sm font-bold text-gray-900">{pool.shortName}</p>
+            <span className="text-[10px] font-bold text-green-700 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded-full">
+              Now Open
+            </span>
+          </div>
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+            <NetworkBadge network={pool.network} />
+            <span className="text-xs text-gray-400">·</span>
+            <span className="text-xs text-gray-500">{pool.poolManager}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Key stats */}
+      <div className="flex items-center gap-6 sm:gap-8 shrink-0">
+        <div>
+          <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Target Yield</p>
+          <p className="text-sm font-bold text-green-700 mt-0.5">{pool.targetYield}</p>
+        </div>
+        <div>
+          <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Min. Deposit</p>
+          <p className="text-sm font-semibold text-gray-900 mt-0.5">{pool.minDeposit}</p>
+        </div>
+        <div className="hidden md:block">
+          <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Credit Quality</p>
+          <p className="text-sm font-semibold text-gray-700 mt-0.5">{pool.creditRating}</p>
+        </div>
+        <div className="hidden lg:block max-w-[220px]">
+          <p className="text-xs text-gray-500 leading-relaxed">{pool.description}</p>
+        </div>
+      </div>
+
+      {/* CTAs */}
+      <div className="flex items-center gap-2 shrink-0">
+        <Link href={`/pools/${pool.id}`}>
+          <Button variant="outline" className="h-8 px-4 text-xs font-semibold border-brand-dark text-brand-dark hover:bg-gray-50">
+            View Details
+          </Button>
+        </Link>
+        <Button className="h-8 px-4 text-xs font-semibold bg-brand-primary hover:bg-orange-600 text-white">
+          Deposit <ArrowUpRight className="w-3 h-3 ml-0.5" />
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 // ─── Bill row ─────────────────────────────────────────────────────────────────
 
 function BillRow({ bill, type }: { bill: Bill; type: "payable" | "receivable" }) {
@@ -501,11 +565,9 @@ export default function DashboardPage() {
           </Link>
         </div>
         <div className="flex gap-4 overflow-x-auto sm:grid sm:grid-cols-2 lg:grid-cols-3 pb-2 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
-          {positions.map((pos) =>
-            pos.hasPosition
-              ? <ActivePositionCard key={pos.id} pos={pos} />
-              : <LaunchCard key={pos.id} pos={pos} />
-          )}
+          {positions.map((pos) => (
+            <ActivePositionCard key={pos.id} pos={pos} />
+          ))}
           {/* Browse more pools CTA */}
           <Link href="/pools" className="min-w-[220px] sm:min-w-0 flex-shrink-0 sm:flex-shrink">
             <div className="h-full border-2 border-dashed border-gray-200 rounded-lg p-4 flex flex-col items-center justify-center gap-2 text-center cursor-pointer hover:border-brand-primary/40 transition-colors group">
@@ -518,6 +580,26 @@ export default function DashboardPage() {
           </Link>
         </div>
       </section>
+
+      {/* ── Available Pools ──────────────────────────────────────────────── */}
+      {availablePools.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-base font-bold text-gray-900">Available to You</h2>
+              <p className="text-xs text-gray-500 mt-0.5">Pools you can invest in now</p>
+            </div>
+            <Link href="/pools" className="flex items-center gap-1 text-sm font-medium text-brand-primary hover:underline">
+              View all <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {availablePools.map((pool) => (
+              <AvailablePoolRow key={pool.id} pool={pool} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ── Billing ─────────────────────────────────────────────────────── */}
       <section>
