@@ -30,6 +30,24 @@ function RedbellyIcon({ size = 18 }: { size?: number }) {
   )
 }
 
+function BaseIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <circle cx="16" cy="16" r="16" fill="#0052FF" fillOpacity="0.12" />
+      <circle cx="16" cy="16" r="6" fill="#0052FF" fillOpacity="0.8" />
+    </svg>
+  )
+}
+
+function PolygonIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <circle cx="16" cy="16" r="16" fill="#8247E5" fillOpacity="0.12" />
+      <path d="M20.5 12.8l-3.8-2.2c-.4-.2-1-.2-1.4 0l-3.8 2.2c-.4.2-.7.7-.7 1.2v4.3c0 .5.3 1 .7 1.2l3.8 2.2c.4.2 1 .2 1.4 0l3.8-2.2c.4-.2.7-.7.7-1.2V14c0-.5-.3-1-.7-1.2z" fill="#8247E5" fillOpacity="0.8" />
+    </svg>
+  )
+}
+
 // ─── Sparkline ────────────────────────────────────────────────────────────────
 
 function Sparkline({ data }: { data: number[] }) {
@@ -150,7 +168,7 @@ type Pool = {
   poolManagerUrl: string
   poolManagerDesc: string
   targetYield: string
-  network: "Ethereum" | "Redbelly"
+  network: "Ethereum" | "Redbelly" | "Base" | "Polygon"
   stablecoin: string
   fundBalance: string
   deployedCapital: string
@@ -185,36 +203,31 @@ const TARAMLogo = () => (
   </div>
 )
 
+const NexusLogo = () => (
+  <div className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
+    <span className="text-[10px] font-bold text-blue-600 tracking-tight">NXS</span>
+  </div>
+)
+
+const GalaxyLogo = () => (
+  <div className="w-10 h-10 rounded-full bg-indigo-50 border border-indigo-200 flex items-center justify-center shrink-0">
+    <span className="text-[11px] font-bold text-indigo-600 tracking-tight">GD</span>
+  </div>
+)
+
+const MeridianLogo = () => (
+  <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+    <span className="text-[10px] font-bold text-emerald-600 tracking-tight">MRD</span>
+  </div>
+)
+
+const ZeroHashLogo = () => (
+  <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
+    <span className="text-[10px] font-bold text-slate-500 tracking-tight">ZH</span>
+  </div>
+)
+
 const pools: Pool[] = [
-  {
-    id: "1",
-    name: "TCS Settlement Pool - Mainnet V2.1",
-    createdDate: "Mar 10, 2026",
-    originator: "tcsblockchain.com",
-    originatorUrl: "#",
-    poolManager: "TCS Blockchain Inc.",
-    poolManagerUrl: "#",
-    poolManagerDesc: "Tokenizes working capital for trucking companies",
-    targetYield: "7.95%",
-    network: "Ethereum",
-    stablecoin: "PYUSD",
-    fundBalance: "0.000",
-    deployedCapital: "0.000",
-    capitalAccount: "0.000",
-    currentPrice: "1.000 PYUSD",
-    tokensAvailable: "0.000 BFT-TCS-V2_1",
-    totalSupply: "0.000 BFT-TCS-V2_1",
-    tokenSymbol: "BFT-TCS-V2_1",
-    canInteract: true,
-    minDeposit: "10,000 PYUSD",
-    utilizationPct: 0,
-    creditRating: "AAA / AA–",
-    creditRatingNote: "Eligible receivables require S&P AAA/AA– rated freight recipients with confirmed bill of lading. Net 30–45 day terms.",
-    maturityBreakdown: null,
-    priceHistory: [1.0, 1.0, 1.0, 1.0, 1.0],
-    lpaUrl: "#",
-    logo: <TCSLogo />,
-  },
   {
     id: "2",
     name: "TARAM Funding Pool - Redbelly",
@@ -243,6 +256,151 @@ const pools: Pool[] = [
     priceHistory: [1.0, 1.012, 1.024, 1.036, 1.047, 1.053, 1.062],
     lpaUrl: "#",
     logo: <TARAMLogo />,
+  },
+  {
+    id: "6",
+    name: "ZeroHash Yield Reserve - Mainnet",
+    createdDate: "Jun 8, 2025",
+    originator: "zerohash.com",
+    originatorUrl: "#",
+    poolManager: "ZeroHash Inc.",
+    poolManagerUrl: "#",
+    poolManagerDesc: "Regulated digital asset infrastructure — institutional-grade yield on stablecoins",
+    targetYield: "5.8%",
+    network: "Ethereum",
+    stablecoin: "USDC",
+    fundBalance: "8,920.000",
+    deployedCapital: "895,420.000",
+    capitalAccount: "920,450.000",
+    currentPrice: "1.044 USDC",
+    tokensAvailable: "8,544.061 BFT-ZH",
+    totalSupply: "881,657.088 BFT-ZH",
+    tokenSymbol: "BFT-ZH",
+    canInteract: true,
+    minDeposit: "25,000 USDC",
+    utilizationPct: 99.2,
+    creditRating: "AAA / AA–",
+    creditRatingNote: "ZeroHash sources receivables from regulated financial institutions and Fortune 500 counterparties. Average term 30–60 days. Zero default history since inception.",
+    maturityBreakdown: { d30: 55, d60: 45, d90: 0, d120: 0 },
+    priceHistory: [1.0, 1.008, 1.016, 1.024, 1.032, 1.038, 1.044],
+    lpaUrl: "#",
+    logo: <ZeroHashLogo />,
+  },
+  {
+    id: "4",
+    name: "Galaxy Digital Credit Fund - Mainnet",
+    createdDate: "Sep 5, 2025",
+    originator: "galaxy.com",
+    originatorUrl: "#",
+    poolManager: "Galaxy Digital Inc.",
+    poolManagerUrl: "#",
+    poolManagerDesc: "Institutional credit strategies — corporate receivables from investment-grade issuers",
+    targetYield: "8.5%",
+    network: "Ethereum",
+    stablecoin: "PYUSD",
+    fundBalance: "3,840.000",
+    deployedCapital: "98,140.000",
+    capitalAccount: "104,220.000",
+    currentPrice: "1.062 PYUSD",
+    tokensAvailable: "3,616.761 BFT-GALAXY",
+    totalSupply: "98,135.593 BFT-GALAXY",
+    tokenSymbol: "BFT-GALAXY",
+    canInteract: true,
+    minDeposit: "10,000 PYUSD",
+    utilizationPct: 96.1,
+    creditRating: "AAA / AA–",
+    creditRatingNote: "All receivables sourced from investment-grade corporate issuers rated AAA to AA– by S&P. Maximum 60-day terms. Galaxy Digital guarantees servicing continuity.",
+    maturityBreakdown: { d30: 40, d60: 60, d90: 0, d120: 0 },
+    priceHistory: [1.0, 1.010, 1.022, 1.034, 1.045, 1.055, 1.062],
+    lpaUrl: "#",
+    logo: <GalaxyLogo />,
+  },
+  {
+    id: "3",
+    name: "Nexus Supply Chain Pool - Base",
+    createdDate: "Jul 20, 2025",
+    originator: "nexuscapital.io",
+    originatorUrl: "#",
+    poolManager: "Nexus Capital Group",
+    poolManagerUrl: "#",
+    poolManagerDesc: "Supply chain finance for mid-market US manufacturers and distributors",
+    targetYield: "10.5%",
+    network: "Base",
+    stablecoin: "USDC",
+    fundBalance: "12,450.000",
+    deployedCapital: "98,320.000",
+    capitalAccount: "103,840.000",
+    currentPrice: "1.059 USDC",
+    tokensAvailable: "11,756.374 BFT-NEXUS",
+    totalSupply: "98,054.769 BFT-NEXUS",
+    tokenSymbol: "BFT-NEXUS",
+    canInteract: false,
+    minDeposit: "10,000 USDC",
+    utilizationPct: 94.7,
+    creditRating: "A / A–",
+    creditRatingNote: "Receivables sourced from A/A– rated mid-market manufacturers. Third-party credit scoring applied per invoice. 30–90 day terms.",
+    maturityBreakdown: { d30: 25, d60: 45, d90: 30, d120: 0 },
+    priceHistory: [1.0, 1.015, 1.028, 1.038, 1.048, 1.056, 1.059],
+    lpaUrl: "#",
+    logo: <NexusLogo />,
+  },
+  {
+    id: "5",
+    name: "Meridian Invoice Pool - Polygon",
+    createdDate: "Dec 20, 2025",
+    originator: "meridianfinance.io",
+    originatorUrl: "#",
+    poolManager: "Meridian Finance",
+    poolManagerUrl: "#",
+    poolManagerDesc: "US SME invoice financing — verified net-30 receivables from established buyers",
+    targetYield: "12%",
+    network: "Polygon",
+    stablecoin: "USDC",
+    fundBalance: "4,280.000",
+    deployedCapital: "32,100.000",
+    capitalAccount: "34,680.000",
+    currentPrice: "1.028 USDC",
+    tokensAvailable: "4,163.424 BFT-MRD",
+    totalSupply: "33,734.008 BFT-MRD",
+    tokenSymbol: "BFT-MRD",
+    canInteract: false,
+    minDeposit: "5,000 USDC",
+    utilizationPct: 78.5,
+    creditRating: "A / BBB+",
+    creditRatingNote: "Meridian finances verified invoices from established US buyers rated A to BBB+. All invoices are net-30 with first-loss protection up to 5% of pool.",
+    maturityBreakdown: { d30: 100, d60: 0, d90: 0, d120: 0 },
+    priceHistory: [1.0, 1.006, 1.012, 1.018, 1.023, 1.026, 1.028],
+    lpaUrl: "#",
+    logo: <MeridianLogo />,
+  },
+  {
+    id: "1",
+    name: "TCS Settlement Pool - Mainnet V2.1",
+    createdDate: "Mar 10, 2026",
+    originator: "tcsblockchain.com",
+    originatorUrl: "#",
+    poolManager: "TCS Blockchain Inc.",
+    poolManagerUrl: "#",
+    poolManagerDesc: "Tokenizes working capital for trucking companies — freight settlement on Ethereum",
+    targetYield: "7.95%",
+    network: "Ethereum",
+    stablecoin: "PYUSD",
+    fundBalance: "15,000.000",
+    deployedCapital: "0.000",
+    capitalAccount: "15,000.000",
+    currentPrice: "1.001 PYUSD",
+    tokensAvailable: "0.000 BFT-TCS-V2_1",
+    totalSupply: "14,985.015 BFT-TCS-V2_1",
+    tokenSymbol: "BFT-TCS-V2_1",
+    canInteract: true,
+    minDeposit: "10,000 PYUSD",
+    utilizationPct: 0,
+    creditRating: "AAA / AA–",
+    creditRatingNote: "Eligible receivables require S&P AAA/AA– rated freight recipients with confirmed bill of lading. Net 30–45 day terms.",
+    maturityBreakdown: null,
+    priceHistory: [1.0, 1.0, 1.0, 1.0, 1.001],
+    lpaUrl: "#",
+    logo: <TCSLogo />,
   },
 ]
 
@@ -300,7 +458,10 @@ function PoolCard({ pool }: { pool: Pool }) {
             <div>
               <p className="text-xs text-gray-500 mb-0.5">Network</p>
               <div className="flex items-center gap-1.5 font-bold text-gray-900">
-                {pool.network === "Ethereum" ? <EthIcon size={16} /> : <RedbellyIcon size={16} />}
+                {pool.network === "Ethereum" ? <EthIcon size={16} />
+                  : pool.network === "Redbelly" ? <RedbellyIcon size={16} />
+                  : pool.network === "Base" ? <BaseIcon size={16} />
+                  : <PolygonIcon size={16} />}
                 <span className="text-sm">{pool.network}</span>
               </div>
             </div>
