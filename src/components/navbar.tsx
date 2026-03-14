@@ -23,11 +23,12 @@ export function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex space-x-1 text-sm font-medium text-gray-300">
-            <Link href="/" className="hover:text-white hover:bg-white/10 px-3 py-2 rounded-md transition-all">Explorer</Link>
+            <Link href="/" className="hover:text-white hover:bg-white/10 px-3 py-2 rounded-md transition-all">Dashboard</Link>
             <Link href="/contacts" className="hover:text-white hover:bg-white/10 px-3 py-2 rounded-md transition-all">Contacts</Link>
             <Link href="/pools" className="hover:text-white hover:bg-white/10 px-3 py-2 rounded-md transition-all">Finance Pools</Link>
             <Link href="/reporting" className="hover:text-white hover:bg-white/10 px-3 py-2 rounded-md transition-all">Reporting</Link>
             <Link href="/links" className="hover:text-white hover:bg-white/10 px-3 py-2 rounded-md transition-all">My Links</Link>
+            <Link href="/explorer" className="hover:text-white hover:bg-white/10 px-3 py-2 rounded-md transition-all text-gray-500 hover:text-gray-300">Explorer</Link>
             <button className="hover:text-white hover:bg-white/10 px-3 py-2 rounded-md transition-all flex items-center gap-1">
               Help <ChevronDown className="w-3 h-3" />
             </button>
@@ -85,11 +86,12 @@ export function Navbar() {
               <SheetContent side="right" className="w-[300px]">
                 {/* Mobile Menu Content... simplified for this pass */}
                 <div className="flex flex-col gap-4 mt-8">
-                  <Link href="/" className="text-lg font-medium text-gray-800">Explorer</Link>
+                  <Link href="/" className="text-lg font-medium text-gray-800">Dashboard</Link>
                   <Link href="/contacts" className="text-lg font-medium text-gray-800">Contacts</Link>
                   <Link href="/pools" className="text-lg font-medium text-gray-800">Finance Pools</Link>
                   <Link href="/reporting" className="text-lg font-medium text-gray-800">Reporting</Link>
                   <Link href="/links" className="text-lg font-medium text-gray-800">My Links</Link>
+                  <Link href="/explorer" className="text-base font-medium text-gray-500">Explorer</Link>
                 </div>
 
                 <div className="mt-8 pt-8 border-t border-gray-100 flex flex-col gap-4">
