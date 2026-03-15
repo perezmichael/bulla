@@ -893,35 +893,218 @@ function NewWalletView() {
 
 // ─── View: Depositor ──────────────────────────────────────────────────────────
 
-function DepositorView() {
-  const actions = [
-    { icon: <ArrowUpRight className="size-4" />, label: "Deposit More", href: "/pools",    accent: true },
-    { icon: <TrendingUp className="size-4" />,   label: "All Pools",    href: "/pools",    accent: false },
-    { icon: <RefreshCw className="size-4" />,    label: "History",      href: "/explorer", accent: false },
-    { icon: <ArrowDownLeft className="size-4" />,label: "Withdraw",     href: "/pools",    accent: false },
-  ]
+// Upcoming maturities sorted by urgency (days out from Mar 15, 2026)
+const maturityChips = [
+  { id: "6", poolName: "ZeroHash", date: "Mar 22", daysOut: 7  },
+  { id: "4", poolName: "Galaxy",   date: "Mar 28", daysOut: 13 },
+  { id: "3", poolName: "Nexus",    date: "Apr 2",  daysOut: 18 },
+  { id: "5", poolName: "Meridian", date: "Apr 18", daysOut: 34 },
+  { id: "2", poolName: "TARAM",    date: "May 7",  daysOut: 53 },
+]
 
+function PositionRow({ pos, last }: { pos: Position; last: boolean }) {
   return (
-    <div className="space-y-6 pb-20">
-      <QuickActionBar actions={actions} />
+    <Link href={`/pools/${pos.id}`}>
+      <div className={cn(
+        "flex items-center gap-4 px-4 py-3.5 hover:bg-gray-50/70 transition-colors cursor-pointer group",
+        !last && "border-b border-gray-100"
+      )}>
+        {/* Logo + Name */}
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          {pos.logo}
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm font-bold text-gray-900 truncate">{pos.shortName}</p>
+              {pos.isNew && (
+                <span className="shrink-0 text-[9px] font-bold text-green-700 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded-full">
+                  NEW
+                </span>
+              )}
+            </div>
+            <NetworkBadge network={pos.network} />
+          </div>
+        </div>
 
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base font-bold text-gray-900">Your Portfolio</h2>
-          <Link href="/pools" className="flex items-center gap-1 text-sm font-medium text-brand-primary hover:underline">
-            All pools <ChevronRight className="size-3.5" />
+        {/* Current Value */}
+        <div className="hidden sm:block text-right shrink-0 w-28">
+          <p className="text-sm font-bold text-gray-900 tabular-nums">{pos.currentValue}</p>
+          <p className="text-[10px] text-gray-400 tabular-nums">dep. {pos.depositedValue}</p>
+        </div>
+
+        {/* Yield Earned */}
+        <div className="text-right shrink-0 w-24">
+          <p className={cn(
+            "text-sm font-bold tabular-nums",
+            parseFloat(pos.yieldEarned.replace(/[$,]/g, "")) > 0 ? "text-green-700" : "text-gray-400"
+          )}>
+            {pos.yieldEarned}
+          </p>
+          <p className="text-[10px] text-green-600 font-semibold">{pos.yieldEarnedPct}</p>
+        </div>
+
+        {/* Target Yield */}
+        <div className="hidden md:block text-right shrink-0 w-16">
+          <p className="text-[10px] text-gray-400 font-medium">Target</p>
+          <p className="text-sm font-bold text-gray-700">{pos.targetYield}</p>
+        </div>
+
+        {/* Status: utilization + maturity */}
+        <div className="hidden lg:block shrink-0 w-36">
+          {pos.utilizationPct > 0 ? (
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-[10px] text-gray-500">
+                <span>{pos.utilizationPct}%</span>
+                {pos.nextMaturityDate && (
+                  <span className="flex items-center gap-0.5 text-gray-400">
+                    <Clock className="size-2.5" />
+                    {pos.nextMaturityDate}
+                  </span>
+                )}
+              </div>
+              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-amber-400 rounded-full" style={{ width: `${pos.utilizationPct}%` }} />
+              </div>
+            </div>
+          ) : (
+            <div className="text-[10px] text-gray-400 bg-gray-50 rounded px-2 py-1">
+              Deploying capital
+            </div>
+          )}
+        </div>
+
+        <ChevronRight className="size-4 text-gray-300 group-hover:text-gray-500 transition-colors shrink-0" />
+      </div>
+    </Link>
+  )
+}
+
+function DepositorView() {
+  return (
+    <div className="space-y-5 pb-20">
+
+      {/* ── Hero ─────────────────────────────────────────────────────── */}
+      <div className="bg-[#14282D] text-white rounded-xl px-5 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <p className="text-xs text-gray-400 font-medium mb-1">Portfolio Value</p>
+          <div className="flex items-baseline gap-3 flex-wrap">
+            <p className="text-3xl font-bold tabular-nums">$112,415.42</p>
+            <div className="flex items-center gap-1.5">
+              <TrendingUp className="size-3.5 text-green-400" />
+              <span className="text-green-400 font-semibold text-sm tabular-nums">+$4,415.42 (4.09%)</span>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500 mt-1.5">
+            $108,000 deposited · 6 active pools · 7.76% avg yield
+          </p>
+        </div>
+        <div className="flex gap-2 sm:flex-col">
+          <Link href="/pools">
+            <Button className="bg-brand-primary hover:bg-orange-600 text-white h-10 px-6 font-semibold text-sm whitespace-nowrap flex items-center gap-2">
+              <ArrowUpRight className="size-4" />
+              Deposit More
+            </Button>
+          </Link>
+          <Link href="/explorer">
+            <Button variant="ghost" className="text-gray-400 hover:text-white hover:bg-white/10 h-10 px-4 text-sm whitespace-nowrap">
+              History
+            </Button>
           </Link>
         </div>
-        <PortfolioSummary />
-        <div className="mt-4 flex gap-4 overflow-x-auto sm:grid sm:grid-cols-2 lg:grid-cols-3 pb-2 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
-          {positions.map((pos) => (
-            <PositionCard key={pos.id} pos={pos} />
+      </div>
+
+      {/* ── Maturity strip ───────────────────────────────────────────── */}
+      <section>
+        <div className="flex items-center gap-2 mb-2.5">
+          <Clock className="size-3.5 text-amber-500" />
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Upcoming Maturities</p>
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+          {maturityChips.map((chip) => (
+            <Link key={chip.id} href={`/pools/${chip.id}`} className="shrink-0">
+              <div className={cn(
+                "flex items-center gap-2 border rounded-lg px-3 py-2 cursor-pointer transition-colors",
+                chip.daysOut <= 14
+                  ? "bg-amber-50 border-amber-200 hover:border-amber-400"
+                  : "bg-white border-gray-200 hover:border-gray-300"
+              )}>
+                <span className={cn(
+                  "text-xs font-bold",
+                  chip.daysOut <= 14 ? "text-amber-800" : "text-gray-700"
+                )}>
+                  {chip.poolName}
+                </span>
+                <span className={cn(
+                  "text-xs",
+                  chip.daysOut <= 14 ? "text-amber-600" : "text-gray-400"
+                )}>
+                  {chip.date}
+                </span>
+                {chip.daysOut <= 14 && (
+                  <span className="text-[9px] font-bold bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded-full">
+                    {chip.daysOut}d
+                  </span>
+                )}
+              </div>
+            </Link>
           ))}
         </div>
       </section>
 
-      <ActivityFeed />
-      <ExplorerCTA />
+      {/* ── Positions table ──────────────────────────────────────────── */}
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-bold text-gray-900">Your Positions</h2>
+          <Link href="/pools" className="flex items-center gap-1 text-sm font-medium text-brand-primary hover:underline">
+            All pools <ChevronRight className="size-3.5" />
+          </Link>
+        </div>
+
+        {/* Column headers — desktop only */}
+        <div className="hidden lg:flex items-center gap-4 px-4 pb-2 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">
+          <div className="flex-1">Pool</div>
+          <div className="w-28 text-right">Value</div>
+          <div className="w-24 text-right">Return</div>
+          <div className="w-16 text-right">Target</div>
+          <div className="w-36">Status</div>
+          <div className="w-4" />
+        </div>
+
+        <div className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
+          {positions.map((pos, i) => (
+            <PositionRow key={pos.id} pos={pos} last={i === positions.length - 1} />
+          ))}
+        </div>
+      </section>
+
+      {/* ── Compact activity ─────────────────────────────────────────── */}
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-bold text-gray-900">Recent Activity</h2>
+          <Link href="/explorer" className="flex items-center gap-1 text-sm font-medium text-brand-primary hover:underline">
+            Full history <ChevronRight className="size-3.5" />
+          </Link>
+        </div>
+        <div className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
+          <div className="divide-y divide-gray-50">
+            {recentActivity.slice(0, 4).map((event) => (
+              <div key={event.id} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50/50 transition-colors">
+                <ActivityIcon type={event.type} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 truncate">{event.label}</p>
+                  <p className="text-xs text-gray-500 truncate">{event.sublabel}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className={cn("text-sm font-bold tabular-nums", event.incoming ? "text-green-700" : "text-gray-700")}>
+                    {event.incoming ? "+" : "−"}{event.amount}
+                  </p>
+                  <p className="text-[10px] text-gray-400">{event.date}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
     </div>
   )
 }
