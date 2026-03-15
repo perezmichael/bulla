@@ -9,9 +9,11 @@ import {
   Clock, AlertCircle, Link2,
   ChevronDown, ChevronUp, CheckCircle2,
   ArrowDownRight, RefreshCw, FileText,
+  Wallet, WifiOff, Building2, Sparkles,
 } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { useWalletState } from "@/contexts/wallet-state"
 
 // ─── Chain icons ──────────────────────────────────────────────────────────────
 
@@ -64,12 +66,12 @@ function PolygonIcon({ size = 18 }: { size?: number }) {
 // ─── Pool logos ───────────────────────────────────────────────────────────────
 
 const TCSLogo = () => (
-  <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0">
+  <div className="size-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0">
     <span className="text-[10px] font-bold text-gray-500 tracking-tight">TCS</span>
   </div>
 )
 const TARAMLogo = () => (
-  <div className="w-10 h-10 rounded-full bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
+  <div className="size-10 rounded-full bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
       <path d="M6 18L12 6l6 12" stroke="#E53E3E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M8.5 14h7" stroke="#E53E3E" strokeWidth="2" strokeLinecap="round" />
@@ -77,27 +79,27 @@ const TARAMLogo = () => (
   </div>
 )
 const NexusLogo = () => (
-  <div className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
+  <div className="size-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
     <span className="text-[10px] font-bold text-blue-600 tracking-tight">NXS</span>
   </div>
 )
 const GalaxyLogo = () => (
-  <div className="w-10 h-10 rounded-full bg-indigo-50 border border-indigo-200 flex items-center justify-center shrink-0">
+  <div className="size-10 rounded-full bg-indigo-50 border border-indigo-200 flex items-center justify-center shrink-0">
     <span className="text-[11px] font-bold text-indigo-600 tracking-tight">GD</span>
   </div>
 )
 const MeridianLogo = () => (
-  <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+  <div className="size-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
     <span className="text-[10px] font-bold text-emerald-600 tracking-tight">MRD</span>
   </div>
 )
 const ZeroHashLogo = () => (
-  <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
+  <div className="size-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
     <span className="text-[10px] font-bold text-slate-500 tracking-tight">ZH</span>
   </div>
 )
 
-// ─── Position data ────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type Network = "Ethereum" | "Redbelly" | "Base" | "Polygon"
 
@@ -120,6 +122,30 @@ type Position = {
   isNew: boolean
   logo: React.ReactNode
 }
+
+type Bill = {
+  id: string
+  counterparty: string
+  description: string
+  amount: string
+  usdAmount: string
+  dueDate: string
+  overdue: boolean
+  chain: "eth" | "base" | "gnosis"
+}
+
+type ActivityEvent = {
+  id: string
+  type: "invoice_repaid" | "invoice_funded" | "pool_deposit" | "pool_redemption"
+  label: string
+  sublabel: string
+  amount: string
+  incoming: boolean
+  date: string
+  poolId: string
+}
+
+// ─── Data ─────────────────────────────────────────────────────────────────────
 
 const positions: Position[] = [
   {
@@ -238,19 +264,6 @@ const positions: Position[] = [
   },
 ]
 
-// ─── Bill data ────────────────────────────────────────────────────────────────
-
-type Bill = {
-  id: string
-  counterparty: string
-  description: string
-  amount: string
-  usdAmount: string
-  dueDate: string
-  overdue: boolean
-  chain: "eth" | "base" | "gnosis"
-}
-
 const payables: Bill[] = [
   { id: "p1", counterparty: "tcsblockchain.com", description: "Settlement fee Q1",    amount: "2,500 USDC", usdAmount: "$2,500.00", dueDate: "Mar 20, 2026", overdue: false, chain: "eth" },
   { id: "p2", counterparty: "0xd52...3793",       description: "Vendor services",      amount: "850 USDC",   usdAmount: "$850.00",   dueDate: "Mar 15, 2026", overdue: false, chain: "gnosis" },
@@ -267,19 +280,6 @@ const receivables: Bill[] = [
   { id: "r5", counterparty: "Unverified",   description: "Token sale proceeds",  amount: "350 USDC",   usdAmount: "$350.00",   dueDate: "Apr 2, 2026",  overdue: false, chain: "base" },
 ]
 
-// ─── Activity data ────────────────────────────────────────────────────────────
-
-type ActivityEvent = {
-  id: string
-  type: "invoice_repaid" | "invoice_funded" | "pool_deposit" | "pool_redemption"
-  label: string
-  sublabel: string
-  amount: string
-  incoming: boolean
-  date: string
-  poolId: string
-}
-
 const recentActivity: ActivityEvent[] = [
   { id: "a1", type: "invoice_repaid",  label: "Invoice repaid to pool",  sublabel: "TARAM · Mundra to Hamburg",       amount: "8,200 USDC",  incoming: true,  date: "Mar 13", poolId: "2" },
   { id: "a2", type: "invoice_repaid",  label: "Invoice repaid to pool",  sublabel: "ZeroHash Reserve · US Receivable",amount: "42,000 USDC", incoming: true,  date: "Mar 11", poolId: "6" },
@@ -290,7 +290,14 @@ const recentActivity: ActivityEvent[] = [
   { id: "a7", type: "pool_redemption", label: "Redemption processed",    sublabel: "0x6696be8 · TARAM Pool",          amount: "10.48 USDC",  incoming: false, date: "Feb 20", poolId: "2" },
 ]
 
-// ─── Shared helpers ───────────────────────────────────────────────────────────
+const PROTOCOL_STATS = [
+  { label: "Total Value Locked", value: "$48.2M" },
+  { label: "Active Pools",       value: "12" },
+  { label: "Businesses",         value: "340+" },
+  { label: "Networks",           value: "4" },
+]
+
+// ─── Shared sub-components ────────────────────────────────────────────────────
 
 function NetworkBadge({ network }: { network: Network }) {
   const icons: Record<Network, React.ReactNode> = {
@@ -313,47 +320,20 @@ function ChainDot({ chain }: { chain: "eth" | "base" | "gnosis" }) {
   return <GnosisIcon size={13} />
 }
 
-// ─── Portfolio summary ────────────────────────────────────────────────────────
-
-function PortfolioSummary({ positions }: { positions: Position[] }) {
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      <div className="bg-[#14282D] text-white rounded-lg px-4 py-3">
-        <p className="text-xs text-gray-400 font-medium">Portfolio Value</p>
-        <p className="text-xl font-bold mt-0.5">$112,415.42</p>
-        <p className="text-xs text-gray-400 mt-0.5">{positions.length} active pools</p>
-      </div>
-      <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
-        <p className="text-xs text-gray-500 font-medium">Total Deposited</p>
-        <p className="text-xl font-bold text-gray-900 mt-0.5">$108,000.00</p>
-        <p className="text-xs text-gray-400 mt-0.5">across all positions</p>
-      </div>
-      <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
-        <p className="text-xs text-gray-500 font-medium">Yield Earned</p>
-        <p className="text-xl font-bold text-green-700 mt-0.5">+$4,415.42</p>
-        <div className="flex items-center gap-1 mt-0.5">
-          <TrendingUp className="w-3 h-3 text-green-600" />
-          <span className="text-xs text-green-600 font-semibold">+4.09% total return</span>
-        </div>
-      </div>
-      <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
-        <p className="text-xs text-gray-500 font-medium">Avg. Target Yield</p>
-        <p className="text-xl font-bold text-gray-900 mt-0.5">7.76%</p>
-        <p className="text-xs text-gray-400 mt-0.5">weighted average</p>
-      </div>
-    </div>
-  )
+function ActivityIcon({ type }: { type: ActivityEvent["type"] }) {
+  const base = "size-7 rounded-full flex items-center justify-center shrink-0"
+  if (type === "invoice_repaid")
+    return <div className={cn(base, "bg-green-50 border border-green-200")}><CheckCircle2 className="size-3.5 text-green-600" /></div>
+  if (type === "invoice_funded")
+    return <div className={cn(base, "bg-blue-50 border border-blue-200")}><ArrowUpRight className="size-3.5 text-blue-600" /></div>
+  if (type === "pool_deposit")
+    return <div className={cn(base, "bg-amber-50 border border-amber-200")}><ArrowDownRight className="size-3.5 text-amber-600" /></div>
+  return <div className={cn(base, "bg-gray-50 border border-gray-200")}><RefreshCw className="size-3.5 text-gray-500" /></div>
 }
 
-// ─── Quick actions ────────────────────────────────────────────────────────────
-
-function QuickActions() {
-  const actions = [
-    { icon: <ArrowUpRight className="w-4 h-4" />, label: "Deposit to Pool", href: "/pools",   accent: true },
-    { icon: <FileText className="w-4 h-4" />,     label: "Create Invoice",  href: "/create",  accent: false },
-    { icon: <Link2 className="w-4 h-4" />,         label: "Request Payment", href: "/links",   accent: false },
-    { icon: <RefreshCw className="w-4 h-4" />,     label: "View History",    href: "/explorer",accent: false },
-  ]
+function QuickActionBar({ actions }: {
+  actions: { icon: React.ReactNode; label: string; href: string; accent?: boolean }[]
+}) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
       {actions.map((a) => (
@@ -373,12 +353,39 @@ function QuickActions() {
   )
 }
 
-// ─── Position card ────────────────────────────────────────────────────────────
+function PortfolioSummary() {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="bg-[#14282D] text-white rounded-lg px-4 py-3">
+        <p className="text-xs text-gray-400 font-medium">Portfolio Value</p>
+        <p className="text-xl font-bold tabular-nums mt-0.5">$112,415.42</p>
+        <p className="text-xs text-gray-400 mt-0.5">{positions.length} active pools</p>
+      </div>
+      <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
+        <p className="text-xs text-gray-500 font-medium">Total Deposited</p>
+        <p className="text-xl font-bold text-gray-900 tabular-nums mt-0.5">$108,000.00</p>
+        <p className="text-xs text-gray-400 mt-0.5">across all positions</p>
+      </div>
+      <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
+        <p className="text-xs text-gray-500 font-medium">Yield Earned</p>
+        <p className="text-xl font-bold text-green-700 tabular-nums mt-0.5">+$4,415.42</p>
+        <div className="flex items-center gap-1 mt-0.5">
+          <TrendingUp className="size-3 text-green-600" />
+          <span className="text-xs text-green-600 font-semibold">+4.09% total return</span>
+        </div>
+      </div>
+      <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
+        <p className="text-xs text-gray-500 font-medium">Avg. Target Yield</p>
+        <p className="text-xl font-bold text-gray-900 tabular-nums mt-0.5">7.76%</p>
+        <p className="text-xs text-gray-400 mt-0.5">weighted average</p>
+      </div>
+    </div>
+  )
+}
 
 function PositionCard({ pos }: { pos: Position }) {
   return (
     <div className="border border-gray-200 rounded-lg bg-white shadow-sm p-4 flex flex-col gap-3 min-w-[260px] sm:min-w-0 flex-shrink-0 sm:flex-shrink">
-      {/* Header */}
       <div className="flex items-start gap-3">
         {pos.logo}
         <div className="min-w-0 flex-1">
@@ -393,29 +400,28 @@ function PositionCard({ pos }: { pos: Position }) {
           <NetworkBadge network={pos.network} />
         </div>
         <Link href={`/pools/${pos.id}`} className="shrink-0 text-gray-400 hover:text-brand-primary transition-colors">
-          <ExternalLink className="w-4 h-4" />
+          <ExternalLink className="size-4" />
         </Link>
       </div>
 
       <Separator className="bg-gray-100" />
 
-      {/* Metrics */}
       <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
         <div>
           <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Current Value</p>
-          <p className="text-sm font-bold text-gray-900 mt-0.5">{pos.currentValue}</p>
+          <p className="text-sm font-bold text-gray-900 tabular-nums mt-0.5">{pos.currentValue}</p>
           <p className="text-[10px] text-gray-400">deposited {pos.depositedValue}</p>
         </div>
         <div>
           <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Yield Earned</p>
           <p className={cn(
-            "text-sm font-bold mt-0.5",
+            "text-sm font-bold tabular-nums mt-0.5",
             parseFloat(pos.yieldEarned.replace(/[$,]/g, "")) > 0 ? "text-green-700" : "text-gray-400"
           )}>
             {pos.yieldEarned}
           </p>
           <div className="flex items-center gap-0.5 text-[10px] text-green-600 font-semibold mt-0.5">
-            {parseFloat(pos.yieldEarned.replace(/[$,]/g, "")) > 0 && <TrendingUp className="w-2.5 h-2.5" />}
+            {parseFloat(pos.yieldEarned.replace(/[$,]/g, "")) > 0 && <TrendingUp className="size-2.5" />}
             {pos.yieldEarnedPct}
           </div>
         </div>
@@ -425,19 +431,18 @@ function PositionCard({ pos }: { pos: Position }) {
         </div>
         <div>
           <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Price / Token</p>
-          <p className="text-sm font-bold text-gray-900 mt-0.5">{pos.pricePerToken}</p>
+          <p className="text-sm font-bold text-gray-900 tabular-nums mt-0.5">{pos.pricePerToken}</p>
           <p className="text-[10px] text-gray-400">{pos.daysActive}d active</p>
         </div>
       </div>
 
-      {/* Utilization + maturity */}
       {pos.utilizationPct > 0 ? (
         <div className="space-y-1">
           <div className="flex items-center justify-between text-[10px] text-gray-500">
             <span className="font-medium">{pos.utilizationPct}% deployed</span>
             {pos.nextMaturityDate && (
               <span className="flex items-center gap-1 text-gray-400">
-                <Clock className="w-2.5 h-2.5" />
+                <Clock className="size-2.5" />
                 {pos.nextMaturityDate}
               </span>
             )}
@@ -452,7 +457,6 @@ function PositionCard({ pos }: { pos: Position }) {
         </div>
       )}
 
-      {/* CTAs */}
       <div className="flex gap-2 mt-auto">
         <Link href={`/pools/${pos.id}`} className="flex-1">
           <Button variant="outline" className="w-full h-8 text-xs font-semibold border-brand-dark text-brand-dark hover:bg-gray-50">
@@ -467,22 +471,52 @@ function PositionCard({ pos }: { pos: Position }) {
   )
 }
 
-// ─── Bill row ─────────────────────────────────────────────────────────────────
+function FeaturedPoolCard({ pool }: { pool: Position }) {
+  return (
+    <div className="border border-gray-200 rounded-lg bg-white shadow-sm p-4 flex flex-col gap-3">
+      <div className="flex items-start gap-3">
+        {pool.logo}
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-bold text-gray-900 leading-tight truncate">{pool.shortName}</p>
+          <NetworkBadge network={pool.network} />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+        <div>
+          <p className="text-[10px] text-gray-500 font-medium uppercase">Target Yield</p>
+          <p className="text-sm font-bold text-green-700 mt-0.5">{pool.targetYield}</p>
+        </div>
+        <div>
+          <p className="text-[10px] text-gray-500 font-medium uppercase">Utilization</p>
+          <p className="text-sm font-bold text-gray-900 tabular-nums mt-0.5">{pool.utilizationPct}%</p>
+        </div>
+      </div>
+      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+        <div className="h-full bg-amber-400 rounded-full" style={{ width: `${pool.utilizationPct}%` }} />
+      </div>
+      <Link href={`/pools/${pool.id}`}>
+        <Button variant="outline" className="w-full h-8 text-xs font-semibold border-brand-dark text-brand-dark hover:bg-gray-50">
+          View Pool
+        </Button>
+      </Link>
+    </div>
+  )
+}
 
 function BillRow({ bill, type }: { bill: Bill; type: "payable" | "receivable" }) {
   return (
     <div className="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0">
       <div className={cn(
-        "w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5",
+        "size-7 rounded-full flex items-center justify-center shrink-0 mt-0.5",
         type === "payable" ? "bg-red-50 border border-red-100"
           : bill.overdue ? "bg-amber-50 border border-amber-200"
           : "bg-green-50 border border-green-100"
       )}>
         {bill.overdue
-          ? <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+          ? <AlertCircle className="size-3.5 text-amber-500" />
           : type === "payable"
-            ? <ArrowUpRight className="w-3.5 h-3.5 text-red-500" />
-            : <ArrowDownLeft className="w-3.5 h-3.5 text-green-600" />}
+            ? <ArrowUpRight className="size-3.5 text-red-500" />
+            : <ArrowDownLeft className="size-3.5 text-green-600" />}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-gray-900 truncate">{bill.counterparty}</p>
@@ -490,13 +524,13 @@ function BillRow({ bill, type }: { bill: Bill; type: "payable" | "receivable" })
         <div className="flex items-center gap-1.5 mt-1">
           <ChainDot chain={bill.chain} />
           <span className={cn("text-[10px] font-medium flex items-center gap-0.5", bill.overdue ? "text-amber-600" : "text-gray-400")}>
-            <Clock className="w-2.5 h-2.5" />
+            <Clock className="size-2.5" />
             {bill.overdue ? "Overdue · " : ""}{bill.dueDate}
           </span>
         </div>
       </div>
       <div className="text-right shrink-0">
-        <p className={cn("text-sm font-bold", type === "payable" ? "text-gray-900" : "text-green-700")}>
+        <p className={cn("text-sm font-bold tabular-nums", type === "payable" ? "text-gray-900" : "text-green-700")}>
           {bill.usdAmount}
         </p>
         <p className="text-[10px] text-gray-400">{bill.amount}</p>
@@ -505,44 +539,380 @@ function BillRow({ bill, type }: { bill: Bill; type: "payable" | "receivable" })
   )
 }
 
-// ─── Activity feed ────────────────────────────────────────────────────────────
-
-function ActivityIcon({ type }: { type: ActivityEvent["type"] }) {
-  const base = "w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-  if (type === "invoice_repaid")
-    return <div className={cn(base, "bg-green-50 border border-green-200")}><CheckCircle2 className="w-3.5 h-3.5 text-green-600" /></div>
-  if (type === "invoice_funded")
-    return <div className={cn(base, "bg-blue-50 border border-blue-200")}><ArrowUpRight className="w-3.5 h-3.5 text-blue-600" /></div>
-  if (type === "pool_deposit")
-    return <div className={cn(base, "bg-amber-50 border border-amber-200")}><ArrowDownRight className="w-3.5 h-3.5 text-amber-600" /></div>
-  return <div className={cn(base, "bg-gray-50 border border-gray-200")}><RefreshCw className="w-3.5 h-3.5 text-gray-500" /></div>
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
-export default function DashboardPage() {
-  const [billsExpanded, setBillsExpanded] = useState(true)
+function BillingPanel() {
+  const [expanded, setExpanded] = useState(true)
   const overdueCount = [...payables, ...receivables].filter((b) => b.overdue).length
 
   return (
-    <div className="space-y-6 pb-20">
+    <section>
+      <div
+        className="flex items-center justify-between mb-3 cursor-pointer group"
+        onClick={() => setExpanded((v) => !v)}
+      >
+        <div className="flex items-center gap-2">
+          <h2 className="text-base font-bold text-gray-900">Billing</h2>
+          {overdueCount > 0 && (
+            <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full">
+              {overdueCount} overdue
+            </span>
+          )}
+          <span className="text-xs text-gray-400 font-medium hidden sm:inline">
+            Net: <span className="text-green-700 font-semibold">+$4,708.47</span> incoming
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/explorer"
+            onClick={(e) => e.stopPropagation()}
+            className="flex items-center gap-1 text-sm font-medium text-brand-primary hover:underline"
+          >
+            Full history <ChevronRight className="size-3.5" />
+          </Link>
+          <button className="text-gray-400 group-hover:text-gray-600 transition-colors" aria-label="Toggle billing section">
+            {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+          </button>
+        </div>
+      </div>
 
-      {/* ── Quick Actions ───────────────────────────────────────────────── */}
-      <QuickActions />
+      {!expanded && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="border border-gray-200 rounded-lg bg-white px-4 py-3">
+            <p className="text-xs text-gray-500 mb-1">Total Payable</p>
+            <p className="text-base font-bold text-gray-900 tabular-nums">$3,616.49</p>
+            <p className="text-[10px] text-gray-400">{payables.length} bills</p>
+          </div>
+          <div className="border border-gray-200 rounded-lg bg-white px-4 py-3">
+            <p className="text-xs text-gray-500 mb-1">Total Receivable</p>
+            <p className="text-base font-bold text-green-700 tabular-nums">$8,324.96</p>
+            <p className="text-[10px] text-gray-400">{receivables.length} invoices</p>
+          </div>
+          {overdueCount > 0 && (
+            <div className="border border-amber-200 rounded-lg bg-amber-50 px-4 py-3 col-span-2 flex items-center gap-3">
+              <AlertCircle className="size-4 text-amber-600 shrink-0" />
+              <div>
+                <p className="text-xs font-bold text-amber-800">{overdueCount} overdue item</p>
+                <p className="text-[10px] text-amber-700">Click to expand and review</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
-      {/* ── Your Positions ──────────────────────────────────────────────── */}
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base font-bold text-gray-900">Your Positions</h2>
-          <Link href="/pools" className="flex items-center gap-1 text-sm font-medium text-brand-primary hover:underline">
-            All pools <ChevronRight className="w-3.5 h-3.5" />
+      {expanded && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/60">
+              <div>
+                <p className="text-sm font-bold text-gray-900">Top Payables</p>
+                <p className="text-xs font-semibold text-red-600 mt-0.5">Total: $3,616.49</p>
+              </div>
+              <Link href="/explorer" className="flex items-center gap-1 text-xs font-medium text-brand-primary hover:underline">
+                See all <ChevronRight className="size-3" />
+              </Link>
+            </div>
+            <div className="px-4">
+              {payables.map((bill) => <BillRow key={bill.id} bill={bill} type="payable" />)}
+            </div>
+          </div>
+          <div className="border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/60">
+              <div>
+                <p className="text-sm font-bold text-gray-900">Top Receivables</p>
+                <p className="text-xs font-semibold text-green-700 mt-0.5">Total: $8,324.96</p>
+              </div>
+              <Link href="/explorer" className="flex items-center gap-1 text-xs font-medium text-brand-primary hover:underline">
+                See all <ChevronRight className="size-3" />
+              </Link>
+            </div>
+            <div className="px-4">
+              {receivables.map((bill) => <BillRow key={bill.id} bill={bill} type="receivable" />)}
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  )
+}
+
+function ActivityFeed() {
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-base font-bold text-gray-900">Recent Pool Activity</h2>
+        <Link href="/explorer" className="flex items-center gap-1 text-sm font-medium text-brand-primary hover:underline">
+          Full history <ChevronRight className="size-3.5" />
+        </Link>
+      </div>
+      <div className="border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden">
+        <div className="divide-y divide-gray-50">
+          {recentActivity.map((event) => (
+            <div key={event.id} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50/50 transition-colors">
+              <ActivityIcon type={event.type} />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900 truncate">{event.label}</p>
+                <p className="text-xs text-gray-500 truncate">{event.sublabel}</p>
+              </div>
+              <div className="text-right shrink-0">
+                <p className={cn("text-sm font-bold tabular-nums", event.incoming ? "text-green-700" : "text-gray-700")}>
+                  {event.incoming ? "+" : "−"}{event.amount}
+                </p>
+                <p className="text-[10px] text-gray-400">{event.date}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function ExplorerCTA() {
+  return (
+    <section>
+      <div className="border border-gray-200 rounded-lg bg-white px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-gray-900">Full Transaction History</p>
+          <p className="text-xs text-gray-500 mt-0.5 text-pretty">Search and filter all payments, transfers, swaps, and more across all chains.</p>
+        </div>
+        <Link href="/explorer" className="shrink-0">
+          <Button variant="outline" className="h-9 px-5 border-2 border-brand-dark text-brand-dark font-semibold text-sm hover:bg-gray-50 flex items-center gap-1.5">
+            Open Explorer <ExternalLink className="size-3.5" />
+          </Button>
+        </Link>
+      </div>
+    </section>
+  )
+}
+
+// ─── View: Unconnected ────────────────────────────────────────────────────────
+
+function UnconnectedView() {
+  const featuredPools = [positions[0], positions[3], positions[5]]
+
+  return (
+    <div className="space-y-10 pb-20">
+      {/* Hero */}
+      <div className="text-center py-10 space-y-5">
+        <div className="inline-flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold px-3 py-1.5 rounded-full">
+          <Sparkles className="size-3.5" />
+          On-chain working capital finance
+        </div>
+        <h1 className="text-4xl font-bold tracking-tight text-gray-900 text-balance">
+          Earn yield on idle capital.<br />
+          <span className="text-brand-primary">Get paid faster.</span>
+        </h1>
+        <p className="text-gray-500 text-base max-w-xl mx-auto text-pretty leading-relaxed">
+          Bulla connects investors with real-world invoice pools, giving businesses access to working capital and depositors above-market stablecoin yields.
+        </p>
+        <div className="flex items-center justify-center gap-3 pt-2">
+          <Button className="bg-brand-primary hover:bg-orange-600 text-white h-11 px-8 text-sm font-semibold">
+            Connect Wallet
+          </Button>
+          <Link href="/pools">
+            <Button variant="outline" className="h-11 px-8 text-sm font-semibold border-gray-300">
+              Browse Pools
+            </Button>
           </Link>
         </div>
+      </div>
 
-        {/* Portfolio summary */}
-        <PortfolioSummary positions={positions} />
+      {/* Protocol stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {PROTOCOL_STATS.map((s) => (
+          <div key={s.label} className="bg-white border border-gray-200 rounded-lg px-4 py-4 text-center">
+            <p className="text-2xl font-bold text-gray-900 tabular-nums">{s.value}</p>
+            <p className="text-xs text-gray-500 mt-1">{s.label}</p>
+          </div>
+        ))}
+      </div>
 
-        {/* Position cards */}
+      {/* Featured pools */}
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-bold text-gray-900">Featured Pools</h2>
+          <Link href="/pools" className="flex items-center gap-1 text-sm font-medium text-brand-primary hover:underline">
+            View all <ChevronRight className="size-3.5" />
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {featuredPools.map((pool) => (
+            <FeaturedPoolCard key={pool.id} pool={pool} />
+          ))}
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="bg-[#14282D] rounded-xl p-6 text-white">
+        <h2 className="text-base font-bold mb-5 text-balance">How Bulla Works</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          {[
+            {
+              n: "1",
+              title: "Choose a Pool",
+              desc: "Browse curated invoice pools managed by vetted originators across multiple networks.",
+            },
+            {
+              n: "2",
+              title: "Deposit Stablecoins",
+              desc: "Deposit USDC or other stablecoins and receive BFT tokens representing your share.",
+            },
+            {
+              n: "3",
+              title: "Earn Yield",
+              desc: "Your capital funds real invoices. As they're repaid, your token value grows.",
+            },
+          ].map((step) => (
+            <div key={step.n} className="flex gap-3">
+              <div className="size-7 rounded-full bg-brand-primary/20 border border-brand-primary/30 flex items-center justify-center shrink-0 mt-0.5">
+                <span className="text-xs font-bold text-amber-400">{step.n}</span>
+              </div>
+              <div>
+                <p className="text-sm font-bold mb-1">{step.title}</p>
+                <p className="text-xs text-gray-400 text-pretty leading-relaxed">{step.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-6 pt-5 border-t border-white/10">
+          <Button className="bg-brand-primary hover:bg-orange-600 text-white h-10 px-6 text-sm font-semibold">
+            Connect Wallet to Get Started
+          </Button>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+// ─── View: New Wallet ─────────────────────────────────────────────────────────
+
+function NewWalletView() {
+  const featuredPools = [positions[0], positions[3], positions[5]]
+
+  return (
+    <div className="space-y-6 pb-20">
+      {/* Welcome banner */}
+      <div className="bg-[#14282D] text-white rounded-xl p-5 flex items-start gap-4">
+        <div className="size-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+          <Wallet className="size-5 text-white" />
+        </div>
+        <div className="flex-1">
+          <p className="text-xs text-gray-400">Connected as</p>
+          <p className="font-mono text-sm text-white">0x6696...be8f</p>
+          <p className="text-xs text-gray-400 mt-1 text-pretty">
+            No activity yet. Choose how you'd like to use Bulla below.
+          </p>
+        </div>
+      </div>
+
+      {/* Path selection */}
+      <div>
+        <h2 className="text-base font-bold text-gray-900 mb-3">What would you like to do?</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Link href="/pools">
+            <div className="border-2 border-gray-200 hover:border-brand-primary rounded-xl p-5 cursor-pointer transition-colors group h-full">
+              <div className="size-10 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center mb-3">
+                <TrendingUp className="size-5 text-amber-600" />
+              </div>
+              <h3 className="text-sm font-bold text-gray-900 group-hover:text-brand-primary transition-colors">
+                Invest in Pools
+              </h3>
+              <p className="text-xs text-gray-500 mt-1.5 text-pretty leading-relaxed">
+                Deposit stablecoins into curated invoice pools and earn above-market yield. Pools target 6–15% APY, backed by real-world receivables.
+              </p>
+              <div className="flex items-center gap-1 mt-4 text-xs font-semibold text-brand-primary">
+                Browse pools <ChevronRight className="size-3.5" />
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/contacts">
+            <div className="border-2 border-gray-200 hover:border-brand-primary rounded-xl p-5 cursor-pointer transition-colors group h-full">
+              <div className="size-10 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center mb-3">
+                <FileText className="size-5 text-blue-600" />
+              </div>
+              <h3 className="text-sm font-bold text-gray-900 group-hover:text-brand-primary transition-colors">
+                Manage Payments
+              </h3>
+              <p className="text-xs text-gray-500 mt-1.5 text-pretty leading-relaxed">
+                Create on-chain invoices, request payments via link, and track what's owed to you — all fully verifiable on the blockchain.
+              </p>
+              <div className="flex items-center gap-1 mt-4 text-xs font-semibold text-brand-primary">
+                Create invoice <ChevronRight className="size-3.5" />
+              </div>
+            </div>
+          </Link>
+        </div>
+      </div>
+
+      {/* Available pools */}
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-bold text-gray-900">Available Pools</h2>
+          <Link href="/pools" className="flex items-center gap-1 text-sm font-medium text-brand-primary hover:underline">
+            View all <ChevronRight className="size-3.5" />
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {featuredPools.map((pool) => (
+            <FeaturedPoolCard key={pool.id} pool={pool} />
+          ))}
+        </div>
+      </section>
+
+      {/* Bulla explainer strip */}
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {[
+          {
+            icon: <CheckCircle2 className="size-4 text-green-600" />,
+            title: "On-chain & auditable",
+            desc: "Every transaction is recorded on-chain and independently verifiable.",
+          },
+          {
+            icon: <RefreshCw className="size-4 text-blue-600" />,
+            title: "FIFO redemption queue",
+            desc: "Redemption requests are processed in order with contractual timing guarantees.",
+          },
+          {
+            icon: <TrendingUp className="size-4 text-amber-600" />,
+            title: "Real-world yield",
+            desc: "Yield comes from real invoice repayments, not token emissions.",
+          },
+        ].map((item) => (
+          <div key={item.title} className="bg-white border border-gray-200 rounded-lg px-4 py-3 flex gap-3 items-start">
+            <div className="mt-0.5 shrink-0">{item.icon}</div>
+            <div>
+              <p className="text-xs font-bold text-gray-900">{item.title}</p>
+              <p className="text-[11px] text-gray-500 mt-0.5 text-pretty leading-relaxed">{item.desc}</p>
+            </div>
+          </div>
+        ))}
+      </section>
+    </div>
+  )
+}
+
+// ─── View: Depositor ──────────────────────────────────────────────────────────
+
+function DepositorView() {
+  const actions = [
+    { icon: <ArrowUpRight className="size-4" />, label: "Deposit More", href: "/pools",    accent: true },
+    { icon: <TrendingUp className="size-4" />,   label: "All Pools",    href: "/pools",    accent: false },
+    { icon: <RefreshCw className="size-4" />,    label: "History",      href: "/explorer", accent: false },
+    { icon: <ArrowDownLeft className="size-4" />,label: "Withdraw",     href: "/pools",    accent: false },
+  ]
+
+  return (
+    <div className="space-y-6 pb-20">
+      <QuickActionBar actions={actions} />
+
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-bold text-gray-900">Your Portfolio</h2>
+          <Link href="/pools" className="flex items-center gap-1 text-sm font-medium text-brand-primary hover:underline">
+            All pools <ChevronRight className="size-3.5" />
+          </Link>
+        </div>
+        <PortfolioSummary />
         <div className="mt-4 flex gap-4 overflow-x-auto sm:grid sm:grid-cols-2 lg:grid-cols-3 pb-2 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
           {positions.map((pos) => (
             <PositionCard key={pos.id} pos={pos} />
@@ -550,139 +920,168 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* ── Billing ─────────────────────────────────────────────────────── */}
-      <section>
-        <div
-          className="flex items-center justify-between mb-3 cursor-pointer group"
-          onClick={() => setBillsExpanded((v) => !v)}
-        >
-          <div className="flex items-center gap-2">
-            <h2 className="text-base font-bold text-gray-900">Billing</h2>
-            {overdueCount > 0 && (
-              <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full">
-                {overdueCount} overdue
-              </span>
-            )}
-            <span className="text-xs text-gray-400 font-medium hidden sm:inline">
-              Net: <span className="text-green-700 font-semibold">+$4,708.47</span> incoming
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/explorer"
-              onClick={(e) => e.stopPropagation()}
-              className="flex items-center gap-1 text-sm font-medium text-brand-primary hover:underline"
-            >
-              Full history <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
-            <button className="text-gray-400 group-hover:text-gray-600 transition-colors">
-              {billsExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
-          </div>
+      <ActivityFeed />
+      <ExplorerCTA />
+    </div>
+  )
+}
+
+// ─── View: Business ───────────────────────────────────────────────────────────
+
+function BusinessView() {
+  const overdueCount = [...payables, ...receivables].filter((b) => b.overdue).length
+
+  const actions = [
+    { icon: <FileText className="size-4" />,      label: "Create Invoice",  href: "/contacts", accent: true },
+    { icon: <Link2 className="size-4" />,          label: "Request Payment", href: "/links",    accent: false },
+    { icon: <ArrowUpRight className="size-4" />,  label: "Pay a Bill",      href: "/explorer", accent: false },
+    { icon: <RefreshCw className="size-4" />,      label: "History",         href: "/explorer", accent: false },
+  ]
+
+  return (
+    <div className="space-y-6 pb-20">
+      {/* Net position summary */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="bg-[#14282D] text-white rounded-lg px-4 py-3">
+          <p className="text-xs text-gray-400 font-medium">Net Position</p>
+          <p className="text-xl font-bold tabular-nums mt-0.5">+$4,708.47</p>
+          <p className="text-xs text-gray-400 mt-0.5">more coming in</p>
         </div>
+        <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
+          <p className="text-xs text-gray-500 font-medium">Total Payable</p>
+          <p className="text-xl font-bold text-gray-900 tabular-nums mt-0.5">$3,616.49</p>
+          <p className="text-[10px] text-gray-400">{payables.length} bills</p>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
+          <p className="text-xs text-gray-500 font-medium">Total Receivable</p>
+          <p className="text-xl font-bold text-green-700 tabular-nums mt-0.5">$8,324.96</p>
+          <p className="text-[10px] text-gray-400">{receivables.length} invoices</p>
+        </div>
+        <div className={cn(
+          "rounded-lg px-4 py-3",
+          overdueCount > 0 ? "bg-amber-50 border border-amber-200" : "bg-white border border-gray-200"
+        )}>
+          <p className={cn("text-xs font-medium", overdueCount > 0 ? "text-amber-700" : "text-gray-500")}>
+            Overdue
+          </p>
+          <p className={cn("text-xl font-bold tabular-nums mt-0.5", overdueCount > 0 ? "text-amber-800" : "text-gray-900")}>
+            {overdueCount > 0 ? `${overdueCount} item` : "None"}
+          </p>
+          <p className={cn("text-[10px] mt-0.5", overdueCount > 0 ? "text-amber-600" : "text-gray-400")}>
+            {overdueCount > 0 ? "Needs attention" : "All on time"}
+          </p>
+        </div>
+      </div>
 
-        {!billsExpanded && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="border border-gray-200 rounded-lg bg-white px-4 py-3">
-              <p className="text-xs text-gray-500 mb-1">Total Payable</p>
-              <p className="text-base font-bold text-gray-900">$3,616.49</p>
-              <p className="text-[10px] text-gray-400">{payables.length} bills</p>
-            </div>
-            <div className="border border-gray-200 rounded-lg bg-white px-4 py-3">
-              <p className="text-xs text-gray-500 mb-1">Total Receivable</p>
-              <p className="text-base font-bold text-green-700">$8,324.96</p>
-              <p className="text-[10px] text-gray-400">{receivables.length} invoices</p>
-            </div>
-            {overdueCount > 0 && (
-              <div className="border border-amber-200 rounded-lg bg-amber-50 px-4 py-3 col-span-2 flex items-center gap-3">
-                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                <div>
-                  <p className="text-xs font-bold text-amber-800">{overdueCount} overdue item</p>
-                  <p className="text-[10px] text-amber-700">Click to expand and review</p>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+      <QuickActionBar actions={actions} />
 
-        {billsExpanded && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/60">
-                <div>
-                  <p className="text-sm font-bold text-gray-900">Top Payables</p>
-                  <p className="text-xs font-semibold text-red-600 mt-0.5">Total: $3,616.49</p>
-                </div>
-                <Link href="/explorer" className="flex items-center gap-1 text-xs font-medium text-brand-primary hover:underline">
-                  See all <ChevronRight className="w-3 h-3" />
-                </Link>
-              </div>
-              <div className="px-4">
-                {payables.map((bill) => <BillRow key={bill.id} bill={bill} type="payable" />)}
-              </div>
-            </div>
-            <div className="border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/60">
-                <div>
-                  <p className="text-sm font-bold text-gray-900">Top Receivables</p>
-                  <p className="text-xs font-semibold text-green-700 mt-0.5">Total: $8,324.96</p>
-                </div>
-                <Link href="/explorer" className="flex items-center gap-1 text-xs font-medium text-brand-primary hover:underline">
-                  See all <ChevronRight className="w-3 h-3" />
-                </Link>
-              </div>
-              <div className="px-4">
-                {receivables.map((bill) => <BillRow key={bill.id} bill={bill} type="receivable" />)}
-              </div>
-            </div>
-          </div>
-        )}
-      </section>
-
-      {/* ── Recent Pool Activity ─────────────────────────────────────────── */}
+      {/* Billing panels */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base font-bold text-gray-900">Recent Pool Activity</h2>
-          <Link href="/pools" className="flex items-center gap-1 text-sm font-medium text-brand-primary hover:underline">
-            All pools <ChevronRight className="w-3.5 h-3.5" />
+          <h2 className="text-base font-bold text-gray-900">Billing</h2>
+          <Link href="/explorer" className="flex items-center gap-1 text-sm font-medium text-brand-primary hover:underline">
+            Full history <ChevronRight className="size-3.5" />
           </Link>
         </div>
-        <div className="border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden">
-          <div className="divide-y divide-gray-50">
-            {recentActivity.map((event) => (
-              <div key={event.id} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50/50 transition-colors">
-                <ActivityIcon type={event.type} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{event.label}</p>
-                  <p className="text-xs text-gray-500 truncate">{event.sublabel}</p>
-                </div>
-                <div className="text-right shrink-0">
-                  <p className={cn("text-sm font-bold", event.incoming ? "text-green-700" : "text-gray-700")}>
-                    {event.incoming ? "+" : "−"}{event.amount}
-                  </p>
-                  <p className="text-[10px] text-gray-400">{event.date}</p>
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/60">
+              <div>
+                <p className="text-sm font-bold text-gray-900">Payables</p>
+                <p className="text-xs font-semibold text-red-600 mt-0.5">Total: $3,616.49</p>
               </div>
-            ))}
+              <Link href="/contacts" className="flex items-center gap-1 text-xs font-medium text-brand-primary hover:underline">
+                + New bill
+              </Link>
+            </div>
+            <div className="px-4">
+              {payables.map((bill) => <BillRow key={bill.id} bill={bill} type="payable" />)}
+            </div>
+          </div>
+          <div className="border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/60">
+              <div>
+                <p className="text-sm font-bold text-gray-900">Receivables</p>
+                <p className="text-xs font-semibold text-green-700 mt-0.5">Total: $8,324.96</p>
+              </div>
+              <Link href="/links" className="flex items-center gap-1 text-xs font-medium text-brand-primary hover:underline">
+                + Request
+              </Link>
+            </div>
+            <div className="px-4">
+              {receivables.map((bill) => <BillRow key={bill.id} bill={bill} type="receivable" />)}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── Explorer CTA ────────────────────────────────────────────────── */}
+      {/* Pool discovery CTA */}
       <section>
         <div className="border border-gray-200 rounded-lg bg-white px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold text-gray-900">Full Transaction History</p>
-            <p className="text-xs text-gray-500 mt-0.5">Search and filter all payments, transfers, swaps, and more across all chains.</p>
+            <div className="flex items-center gap-2 mb-1">
+              <TrendingUp className="size-4 text-green-600" />
+              <p className="text-sm font-semibold text-gray-900">Earn yield on idle capital</p>
+            </div>
+            <p className="text-xs text-gray-500 text-pretty">
+              Your stablecoins can earn 6–15% APY in Bulla's curated invoice pools while sitting unused.
+            </p>
           </div>
-          <Link href="/explorer" className="shrink-0">
-            <Button variant="outline" className="h-9 px-5 border-2 border-brand-dark text-brand-dark font-semibold text-sm hover:bg-gray-50 flex items-center gap-1.5">
-              Open Explorer <ExternalLink className="w-3.5 h-3.5" />
+          <Link href="/pools" className="shrink-0">
+            <Button className="bg-brand-primary hover:bg-orange-600 text-white h-9 px-5 font-semibold text-sm flex items-center gap-1.5">
+              Browse Pools <ChevronRight className="size-3.5" />
             </Button>
           </Link>
         </div>
       </section>
-
     </div>
   )
+}
+
+// ─── View: Both (Power User) ──────────────────────────────────────────────────
+
+function BothView() {
+  const actions = [
+    { icon: <ArrowUpRight className="size-4" />, label: "Deposit to Pool",  href: "/pools",    accent: true },
+    { icon: <FileText className="size-4" />,      label: "Create Invoice",  href: "/contacts", accent: false },
+    { icon: <Link2 className="size-4" />,          label: "Request Payment", href: "/links",    accent: false },
+    { icon: <RefreshCw className="size-4" />,      label: "View History",    href: "/explorer", accent: false },
+  ]
+
+  return (
+    <div className="space-y-6 pb-20">
+      <QuickActionBar actions={actions} />
+
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-bold text-gray-900">Your Positions</h2>
+          <Link href="/pools" className="flex items-center gap-1 text-sm font-medium text-brand-primary hover:underline">
+            All pools <ChevronRight className="size-3.5" />
+          </Link>
+        </div>
+        <PortfolioSummary />
+        <div className="mt-4 flex gap-4 overflow-x-auto sm:grid sm:grid-cols-2 lg:grid-cols-3 pb-2 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
+          {positions.map((pos) => (
+            <PositionCard key={pos.id} pos={pos} />
+          ))}
+        </div>
+      </section>
+
+      <BillingPanel />
+      <ActivityFeed />
+      <ExplorerCTA />
+    </div>
+  )
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+export default function DashboardPage() {
+  const { state } = useWalletState()
+
+  if (state === "unconnected") return <UnconnectedView />
+  if (state === "new_wallet")  return <NewWalletView />
+  if (state === "depositor")   return <DepositorView />
+  if (state === "business")    return <BusinessView />
+  return <BothView />
 }
