@@ -1111,94 +1111,210 @@ function DepositorView() {
 
 // ─── View: Business ───────────────────────────────────────────────────────────
 
-function BusinessView() {
-  const overdueCount = [...payables, ...receivables].filter((b) => b.overdue).length
+// Unified timeline: merge payables + receivables, sorted by urgency (due date)
+type TimelineItem = {
+  id: string
+  direction: "in" | "out"
+  counterparty: string
+  description: string
+  usdAmount: string
+  amount: string
+  dueLabel: string     // e.g. "Overdue · 5d", "Due today", "in 7d", "Apr 5"
+  urgent: boolean      // overdue or due today
+  overdue: boolean
+  chain: "eth" | "base" | "gnosis"
+}
 
-  const actions = [
-    { icon: <FileText className="size-4" />,      label: "Create Invoice",  href: "/contacts", accent: true },
-    { icon: <Link2 className="size-4" />,          label: "Request Payment", href: "/links",    accent: false },
-    { icon: <ArrowUpRight className="size-4" />,  label: "Pay a Bill",      href: "/explorer", accent: false },
-    { icon: <RefreshCw className="size-4" />,      label: "History",         href: "/explorer", accent: false },
-  ]
+const timeline: TimelineItem[] = [
+  // ─ overdue first ─
+  { id: "r4", direction: "in",  counterparty: "0x8aa...4e51", description: "Overdue license fee",    usdAmount: "$800.00",    amount: "800 USDC",   dueLabel: "Overdue · 5d",  urgent: true,  overdue: true,  chain: "gnosis" },
+  // ─ today ─
+  { id: "p2", direction: "out", counterparty: "0xd52...3793", description: "Vendor services",        usdAmount: "$850.00",    amount: "850 USDC",   dueLabel: "Due today",     urgent: true,  overdue: false, chain: "gnosis" },
+  // ─ upcoming ─
+  { id: "r1", direction: "in",  counterparty: "GnosisSafe",   description: "Consulting retainer",    usdAmount: "$5,000.00",  amount: "5,000 USDC", dueLabel: "Mar 16 · 1d",   urgent: false, overdue: false, chain: "gnosis" },
+  { id: "p1", direction: "out", counterparty: "tcsblockchain.com", description: "Settlement fee Q1", usdAmount: "$2,500.00",  amount: "2,500 USDC", dueLabel: "Mar 20 · 5d",   urgent: false, overdue: false, chain: "eth" },
+  { id: "r2", direction: "in",  counterparty: "0x89e...5e6d", description: "Project milestone #2",   usdAmount: "$1,200.00",  amount: "1,200 USDC", dueLabel: "Mar 22 · 7d",   urgent: false, overdue: false, chain: "base" },
+  { id: "p3", direction: "out", counterparty: "Bulla Network", description: "Premium subscription",  usdAmount: "$49.00",     amount: "49 USDC",    dueLabel: "Mar 28 · 13d",  urgent: false, overdue: false, chain: "base" },
+  { id: "r3", direction: "in",  counterparty: "0x902...8243", description: "Dev work — Phase 1",     usdAmount: "$974.96",    amount: "0.5 ETH",    dueLabel: "Mar 31 · 16d",  urgent: false, overdue: false, chain: "eth" },
+  { id: "p4", direction: "out", counterparty: "0x8a8...181f", description: "Infrastructure fee",     usdAmount: "$97.49",     amount: "0.05 ETH",   dueLabel: "Apr 1 · 17d",   urgent: false, overdue: false, chain: "eth" },
+  { id: "r5", direction: "in",  counterparty: "Unverified",   description: "Token sale proceeds",    usdAmount: "$350.00",    amount: "350 USDC",   dueLabel: "Apr 2 · 18d",   urgent: false, overdue: false, chain: "base" },
+  { id: "p5", direction: "out", counterparty: "SaaS Provider", description: "Monthly plan",          usdAmount: "$120.00",    amount: "120 USDC",   dueLabel: "Apr 5 · 21d",   urgent: false, overdue: false, chain: "base" },
+]
 
+function TimelineRow({ item, last }: { item: TimelineItem; last: boolean }) {
+  const isIn = item.direction === "in"
   return (
-    <div className="space-y-6 pb-20">
-      {/* Net position summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-[#14282D] text-white rounded-lg px-4 py-3">
-          <p className="text-xs text-gray-400 font-medium">Net Position</p>
-          <p className="text-xl font-bold tabular-nums mt-0.5">+$4,708.47</p>
-          <p className="text-xs text-gray-400 mt-0.5">more coming in</p>
+    <div className={cn(
+      "flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50/60",
+      !last && "border-b border-gray-100"
+    )}>
+      {/* Direction indicator */}
+      <div className={cn(
+        "size-7 rounded-full flex items-center justify-center shrink-0",
+        item.overdue
+          ? "bg-amber-50 border border-amber-200"
+          : isIn
+            ? "bg-green-50 border border-green-200"
+            : "bg-gray-50 border border-gray-200"
+      )}>
+        {item.overdue
+          ? <AlertCircle className="size-3.5 text-amber-500" />
+          : isIn
+            ? <ArrowDownLeft className="size-3.5 text-green-600" />
+            : <ArrowUpRight className="size-3.5 text-gray-500" />}
+      </div>
+
+      {/* Counterparty + description */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-semibold text-gray-900 truncate">{item.counterparty}</p>
+          {item.overdue && (
+            <span className="shrink-0 text-[9px] font-bold bg-amber-100 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded-full">
+              OVERDUE
+            </span>
+          )}
         </div>
-        <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
-          <p className="text-xs text-gray-500 font-medium">Total Payable</p>
-          <p className="text-xl font-bold text-gray-900 tabular-nums mt-0.5">$3,616.49</p>
-          <p className="text-[10px] text-gray-400">{payables.length} bills</p>
-        </div>
-        <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
-          <p className="text-xs text-gray-500 font-medium">Total Receivable</p>
-          <p className="text-xl font-bold text-green-700 tabular-nums mt-0.5">$8,324.96</p>
-          <p className="text-[10px] text-gray-400">{receivables.length} invoices</p>
-        </div>
-        <div className={cn(
-          "rounded-lg px-4 py-3",
-          overdueCount > 0 ? "bg-amber-50 border border-amber-200" : "bg-white border border-gray-200"
-        )}>
-          <p className={cn("text-xs font-medium", overdueCount > 0 ? "text-amber-700" : "text-gray-500")}>
-            Overdue
-          </p>
-          <p className={cn("text-xl font-bold tabular-nums mt-0.5", overdueCount > 0 ? "text-amber-800" : "text-gray-900")}>
-            {overdueCount > 0 ? `${overdueCount} item` : "None"}
-          </p>
-          <p className={cn("text-[10px] mt-0.5", overdueCount > 0 ? "text-amber-600" : "text-gray-400")}>
-            {overdueCount > 0 ? "Needs attention" : "All on time"}
-          </p>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <ChainDot chain={item.chain} />
+          <p className="text-xs text-gray-400 truncate">{item.description}</p>
         </div>
       </div>
 
-      <QuickActionBar actions={actions} />
+      {/* Amount + due date */}
+      <div className="text-right shrink-0">
+        <p className={cn(
+          "text-sm font-bold tabular-nums",
+          item.overdue ? "text-amber-700" : isIn ? "text-green-700" : "text-gray-900"
+        )}>
+          {isIn ? "+" : "−"}{item.usdAmount}
+        </p>
+        <p className={cn(
+          "text-[10px] mt-0.5",
+          item.urgent ? "text-amber-600 font-semibold" : "text-gray-400"
+        )}>
+          {item.dueLabel}
+        </p>
+      </div>
+    </div>
+  )
+}
 
-      {/* Billing panels */}
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base font-bold text-gray-900">Billing</h2>
-          <Link href="/explorer" className="flex items-center gap-1 text-sm font-medium text-brand-primary hover:underline">
-            Full history <ChevronRight className="size-3.5" />
+function BusinessView() {
+  const urgentItems = timeline.filter((t) => t.urgent)
+
+  return (
+    <div className="space-y-5 pb-20">
+
+      {/* ── Cashflow hero ────────────────────────────────────────────── */}
+      <div className="bg-[#14282D] text-white rounded-xl px-5 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <p className="text-xs text-gray-400 font-medium mb-2">Cashflow — Next 30 Days</p>
+          <div className="flex items-center gap-5 flex-wrap">
+            <div>
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <ArrowDownLeft className="size-3.5 text-green-400" />
+                <span className="text-xs text-gray-400">Incoming</span>
+              </div>
+              <p className="text-2xl font-bold text-green-400 tabular-nums">$8,324.96</p>
+            </div>
+            <div className="text-white/20 text-xl font-light hidden sm:block">|</div>
+            <div>
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <ArrowUpRight className="size-3.5 text-gray-400" />
+                <span className="text-xs text-gray-400">Outgoing</span>
+              </div>
+              <p className="text-2xl font-bold text-white tabular-nums">$3,616.49</p>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500 mt-2">
+            Net <span className="text-green-400 font-semibold">+$4,708.47</span>
+            {" · "}{timeline.length} open items
+            {urgentItems.length > 0 && (
+              <span className="text-amber-400 font-semibold"> · {urgentItems.length} need attention</span>
+            )}
+          </p>
+        </div>
+        <div className="flex gap-2 sm:flex-col">
+          <Link href="/contacts">
+            <Button className="bg-brand-primary hover:bg-orange-600 text-white h-10 px-5 font-semibold text-sm whitespace-nowrap flex items-center gap-2">
+              <FileText className="size-4" />
+              New Invoice
+            </Button>
+          </Link>
+          <Link href="/links">
+            <Button variant="ghost" className="text-gray-400 hover:text-white hover:bg-white/10 h-10 px-4 text-sm whitespace-nowrap flex items-center gap-2">
+              <Link2 className="size-4" />
+              Request Link
+            </Button>
           </Link>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/60">
-              <div>
-                <p className="text-sm font-bold text-gray-900">Payables</p>
-                <p className="text-xs font-semibold text-red-600 mt-0.5">Total: $3,616.49</p>
-              </div>
-              <Link href="/contacts" className="flex items-center gap-1 text-xs font-medium text-brand-primary hover:underline">
-                + New bill
-              </Link>
-            </div>
-            <div className="px-4">
-              {payables.map((bill) => <BillRow key={bill.id} bill={bill} type="payable" />)}
-            </div>
+      </div>
+
+      {/* ── Needs attention strip ────────────────────────────────────── */}
+      {urgentItems.length > 0 && (
+        <section>
+          <div className="flex items-center gap-2 mb-2.5">
+            <AlertCircle className="size-3.5 text-amber-500" />
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Needs Attention</p>
           </div>
-          <div className="border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/60">
-              <div>
-                <p className="text-sm font-bold text-gray-900">Receivables</p>
-                <p className="text-xs font-semibold text-green-700 mt-0.5">Total: $8,324.96</p>
+          <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+            {urgentItems.map((item) => (
+              <div key={item.id} className={cn(
+                "flex-shrink-0 flex items-center gap-3 border rounded-lg px-3 py-2.5",
+                item.overdue
+                  ? "bg-amber-50 border-amber-200"
+                  : "bg-yellow-50 border-yellow-200"
+              )}>
+                <div>
+                  <p className={cn(
+                    "text-xs font-bold",
+                    item.overdue ? "text-amber-800" : "text-yellow-800"
+                  )}>
+                    {item.counterparty}
+                  </p>
+                  <p className={cn(
+                    "text-[10px]",
+                    item.overdue ? "text-amber-600" : "text-yellow-700"
+                  )}>
+                    {item.description} · {item.usdAmount}
+                  </p>
+                </div>
+                <span className={cn(
+                  "text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0",
+                  item.overdue
+                    ? "bg-amber-200 text-amber-800"
+                    : "bg-yellow-200 text-yellow-800"
+                )}>
+                  {item.overdue ? "OVERDUE" : "TODAY"}
+                </span>
               </div>
-              <Link href="/links" className="flex items-center gap-1 text-xs font-medium text-brand-primary hover:underline">
-                + Request
-              </Link>
-            </div>
-            <div className="px-4">
-              {receivables.map((bill) => <BillRow key={bill.id} bill={bill} type="receivable" />)}
-            </div>
+            ))}
           </div>
+        </section>
+      )}
+
+      {/* ── Unified timeline ─────────────────────────────────────────── */}
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-bold text-gray-900">Upcoming</h2>
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:flex items-center gap-3 text-[10px] text-gray-400 font-medium">
+              <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-green-400 inline-block" />Incoming</span>
+              <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-gray-300 inline-block" />Outgoing</span>
+            </div>
+            <Link href="/explorer" className="flex items-center gap-1 text-sm font-medium text-brand-primary hover:underline">
+              See all <ChevronRight className="size-3.5" />
+            </Link>
+          </div>
+        </div>
+        <div className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
+          {timeline.map((item, i) => (
+            <TimelineRow key={item.id} item={item} last={i === timeline.length - 1} />
+          ))}
         </div>
       </section>
 
-      {/* Pool discovery CTA */}
+      {/* ── Pool discovery CTA ───────────────────────────────────────── */}
       <section>
         <div className="border border-gray-200 rounded-lg bg-white px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -1217,6 +1333,7 @@ function BusinessView() {
           </Link>
         </div>
       </section>
+
     </div>
   )
 }
